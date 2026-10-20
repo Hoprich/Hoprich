@@ -14,8 +14,8 @@ const $=id=>document.getElementById(id);
 const status=message=>{$("status").textContent=message;};
 const sessionKey="unbroken-staging-session";
 let session=null;
-try{session=JSON.parse(sessionStorage.getItem(sessionKey)||"null");}catch{}
-function save(s){session=s; if(s)sessionStorage.setItem(sessionKey,JSON.stringify(s));else sessionStorage.removeItem(sessionKey);render();}
+try{session=JSON.parse(localStorage.getItem(sessionKey)||"null");}catch{}
+function save(s){session=s; if(s)localStorage.setItem(sessionKey,JSON.stringify(s));else localStorage.removeItem(sessionKey);render();}
 function render(){ $("who").textContent=session?.access_token?"Signed in (staging account)":"Not signed in"; }
 function info(s){$("diagnostics").textContent=s;}
 async function request(path,{method="GET",body,authenticated=false}={}){
@@ -44,14 +44,14 @@ wire("signup",async()=>{
  const email=$("email").value.trim(),password=$("password").value;
  if(!email||password.length<8)throw Error("Enter a valid email and a password of at least 8 characters.");
  const data=await request("/auth/v1/signup",{method:"POST",body:{email,password}});
- if(data.access_token){save({...data,expires_at:Math.floor(Date.now()/1000)+(data.expires_in||3600)});status("Account created and signed in.");}
+ if(data.access_token){save({...data,expires_at:Math.floor(Date.now()/1000)+(data.expires_in||3600)});status("Account created and signed in. Opening your prayer dashboard…");window.location.assign("./dashboard.html");}
  else status("Registration request accepted. Check your email for confirmation, then sign in.");
 });
 wire("signin",async()=>{
  const data=await request("/auth/v1/token?grant_type=password",{method:"POST",body:{email:$("email").value.trim(),password:$("password").value}});
  if(!data.access_token)throw Error("Sign-in did not return a session.");
  save({...data,expires_at:Math.floor(Date.now()/1000)+(data.expires_in||3600)});
- status("Signed in successfully.");
+ status("Signed in successfully. Opening your prayer dashboard…");window.location.assign("./dashboard.html");
 });
 wire("signout",async()=>{save(null);status("Signed out on this device.");});
 wire("register",async()=>{
